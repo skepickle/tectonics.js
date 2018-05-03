@@ -347,18 +347,36 @@
 	var BlockUpdate = false;
 	var IsProd = false;
 
+	var grid_algorithm  = querystring['grid_algorithm'] || 'icosahedron';
 	var resolution      = parseInt(querystring['resolution'] || '5');
 	var start_speed     = parseInt(querystring['speed']      || '5');
 	var autosave_period = parseInt(querystring['autosave']   || '0');
 	var autosave_timestamp = 0;
 
-	if (resolution > 6) {
-		resolution = 6;
+	{
+		var valid_grid_algorithms = ['icosahedron','fibonacci'];
+		if (!valid_grid_algorithms.includes(grid_algorithm)) {
+			grid_algorithm = 'icosahedron';
+		};
+		switch (grid_algorithm) {
+			case 'fibonacci':
+				if (resolution > 65535) {
+					resolution = 65535;
+				};
+				break;
+			case 'icosahedron':
+			default:
+				if (resolution > 6) {
+					resolution = 6;
+				};
+		};
 	};
 
 	var view = new View(
 		new Grid( 
-			new THREE.IcosahedronGeometry(1, resolution),
+			( {
+				'fibonacci': new THREEx.FibonacciSphereGeometry(1, resolution, void 0),
+			} )[grid_algorithm] || new THREE.IcosahedronGeometry(1, resolution),
 			{ voronoi_generator: function(points, farthest_distance) {	
 					return VoronoiSphere.FromPos(points, farthest_distance)	
 				} 
